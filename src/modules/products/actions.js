@@ -1,34 +1,36 @@
 import api from "@/http/api";
 
-export const ActionGetProducts = async ({ commit }) => {
+export const ActionGetProducts = async ({ dispatch }) => {
   await api.get('/products').then((res) => {
-    commit("SET_PRODUCTS", res.data.data)
+    dispatch("ActionSetProducts", res.data.data)
   }).catch(er => er)
 }
 
-export const ActionGetProduct = async ({ commit }, payload) => {
+export const ActionGetProduct = async ({ dispatch }, payload) => {
   await api.get(`/products/${payload}`).then(res => {
-    commit("SET_PRODUCT", res.data.data)
+    dispatch("ActionSetProduct", res.data.data)
   }).catch(er => er)
 }
 
 export const ActionInsertProduct = async ({ dispatch }, payload) => {
-  await api.post('/products', payload).then(() => {
-    dispatch('ActionGetProducts')
-  }).catch(er => er)
+  return await api.post('/products', payload)
 }
 
 export const ActionUpdateProduct = async ({ dispatch }, payload) => {
   const { id, data } = payload
-  await api.put(`/products/${id}`, data).then(() => {
-    dispatch('ActionGetProducts')
-  }).catch(er => er)
+  return await api.put(`/products/${id}`, data)
 }
 
 export const ActionDeleteProduct = async ({ dispatch }, payload) => {
-  await api.delete(`/products/${payload}`).then(() => {
-    dispatch('ActionGetProducts')
-  }).catch(er => er)
+  return await api.delete(`/products/${payload}`)
+}
+
+export const ActionSetProducts = async ({ commit }, payload) => {
+  commit("SET_PRODUCTS", payload)
+}
+
+export const ActionSetProduct = async ({ commit }, payload) => {
+  commit("SET_PRODUCT", payload)
 }
 
 export const ActionOpenModalProduct = async ( { commit }) => {

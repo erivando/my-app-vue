@@ -1,34 +1,36 @@
 import api from "@/http/api"
 
-export const ActionGetCategories = async ({ commit }) => {
+export const ActionGetCategories = async ({ dispatch }) => {
   await api.get('/categories').then((res) => {
-    commit("SET_CATEGORIES", res.data.data)
+    dispatch("ActionSetCategories", res.data.data)
   }).catch(er => er)
 }
 
-export const ActionGetCategory = async ({ commit }, payload) => {
+export const ActionGetCategory = async ({ dispatch }, payload) => {
   await api.get(`/categories/${payload}`).then(res => {
-    commit("SET_CATEGORY", res.data.data)
+    dispatch("ActionSetCategory", res.data.data)
   }).catch(er => er)
 }
 
 export const ActionInsertCategory = async ({ dispatch }, payload) => {
-  await api.post('/categories', payload).then(() => {
-    dispatch('ActionGetCategories')
-  }).catch(er => er)
+  return await api.post('/categories', payload)
 }
 
 export const ActionUpdateCategory = async ({ dispatch }, payload) => {
   const { id, data } = payload
-  await api.put(`/categories/${id}`, data).then(() => {
-    dispatch('ActionGetCategories')
-  }).catch(er => er)
+  return await api.put(`/categories/${id}`, data)
 }
 
 export const ActionDeleteCategory = async ({ dispatch }, payload) => {
-  await api.delete(`/categories/${payload}`).then(() => {
-    dispatch('ActionGetCategories')
-  }).catch(er => er)
+  return await api.delete(`/categories/${payload}`)
+}
+
+export const ActionSetCategories = async ({ commit }, payload) => {
+  commit("SET_CATEGORIES", payload)
+}
+
+export const ActionSetCategory = ( { commit }, payload) => {
+  commit("SET_CATEGORY", payload)
 }
 
 export const ActionOpenModalCategory = async ( { commit }) => {

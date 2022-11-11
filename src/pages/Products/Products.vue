@@ -12,6 +12,7 @@
         :fields="fields"
         responsive=""
         :busy="loading"
+        show-empty
       >
         <template #table-busy>
           <div class="text-center text-primary my-4">
@@ -76,7 +77,9 @@ export default {
       'ActionGetProducts',
       'ActionOpenModalProduct',
       'ActionGetProduct',
-      'ActionDeleteProduct'
+      'ActionDeleteProduct',
+      'ActionSetProduct',
+      'ActionSetProducts',
     ]),
     ...mapActions('categories', [
       'ActionGetCategories',
@@ -92,7 +95,7 @@ export default {
     
     openModal() {
       this.ActionOpenModalProduct()
-      this.$store.commit('products/SET_PRODUCT', {})  
+      this.ActionSetProduct({})
     },
 
     async openModalEdit(id) {
@@ -102,12 +105,18 @@ export default {
 
     async removeProduct(id) {
       try {
-        await this.ActionDeleteProduct(id)
-        this.$bvToast.toast('Cadastro removido.', {
-          title: 'Sucesso',
-          autoHideDelay: 5000,
-          solid: true,
-        })
+        let dados = await this.ActionDeleteProduct(id)
+        if (dados.data.error) {
+          throw dados
+        } else {
+          let filter = this.products.filter(item => item.id !== id)
+          this.ActionSetProducts(filter)
+          this.$bvToast.toast('Cadastro removido.', {
+            title: 'Sucesso',
+            autoHideDelay: 5000,
+            solid: true,
+          })
+        }
       } catch (error) {
         this.$bvToast.toast('Não foi possivel remover cadastro.', {
           title: 'Erro',

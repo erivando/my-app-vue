@@ -12,6 +12,7 @@
         :fields="fields"
         responsive=""
         :busy="loading"
+        show-empty
       >
         <template #table-busy>
           <div class="text-center text-primary my-4">
@@ -76,6 +77,8 @@ export default {
         'ActionOpenModalCategory',
         'ActionGetCategory',
         'ActionDeleteCategory',
+        'ActionSetCategories',
+        'ActionSetCategory',
       ]),
     async fetchCategories() {
       this.loading = true
@@ -87,7 +90,7 @@ export default {
     },
     openModal() {
       this.ActionOpenModalCategory()
-      this.$store.commit('categories/SET_CATEGORY', {})
+      this.ActionSetCategory({})
     },
     async openModalEdit(id) {
       await this.ActionGetCategory(id)
@@ -95,12 +98,18 @@ export default {
     },
     async removeCategory(id) {
       try {
-        await this.ActionDeleteCategory(id)
-        this.$bvToast.toast('Cadastro removido.', {
-          title: 'Sucesso',
-          autoHideDelay: 5000,
-          solid: true,
-        })
+        let dados = await this.ActionDeleteCategory(id)
+        if (dados.data.error) {
+          throw dados
+        } else {
+          let filter = this.categories.filter(item => item.id !== id)
+          this.ActionSetCategories(filter)
+          this.$bvToast.toast('Cadastro removido.', {
+            title: 'Sucesso',
+            autoHideDelay: 5000,
+            solid: true,
+          })
+        }
       } catch (error) {
         this.$bvToast.toast('Não foi possivel remover cadastro.', {
           title: 'Erro',

@@ -10,7 +10,7 @@
       <b-form-group
         label="Nome"
         label-for="name-input"
-        invalid-feedback="Name is required"
+        invalid-feedback="Campo obrigatório."
         :state="nameState"
       >
         <b-form-input
@@ -33,7 +33,7 @@ import { mapState, mapActions } from "vuex"
 export default {
   name: 'FormCategory',
   computed: {
-    ...mapState('categories', ['modalCategory', 'category'])
+    ...mapState('categories', ['modalCategory', 'category', 'categories']),
   },
   data() {
     return {
@@ -60,54 +60,68 @@ export default {
       this.ActionOpenModalCategory()
     },
     async handleSubmit() {
-      // Exit when the form isn't valid
       if (!this.checkFormValidity()) {
         return
       } else {
         if (this.category.id) {
-          try {
-            let form = {
-              id: this.category.id,
-              data: {
-                name: this.name
-              }
-            }
-            await this.ActionUpdateCategory(form)
-            this.$bvToast.toast('Cadastro atualizado.', {
-              title: 'Sucesso',
-              autoHideDelay: 5000,
-              solid: true
-            })
-          } catch (error) {
-            this.$bvToast.toast('Não foi possivel atualizar cadastro.', {
-              title: 'Erro',
-              autoHideDelay: 5000,
-              solid: true
-            })
-          } finally {
-            this.ActionOpenModalCategory()
-          }
+          this.edit()
         } else {
-          try {
-            let data = { name: this.name }
-            await this.ActionInsertCategory(data)
-            this.$bvToast.toast('Cadastro realizado.', {
-              title: 'Sucesso',
-              autoHideDelay: 5000,
-              solid: true
-            })
-          } catch (error) {
-            this.$bvToast.toast('Não foi possivel realizar cadastro.', {
-              title: 'Erro',
-              autoHideDelay: 5000,
-              solid: true
-            })
-          } finally {
-            this.resetModal()
-          }
+          this.save()
         }
       }
+    },
+    async save() {
+      try {
+        let data = { name: this.name }
+        let dados = await this.ActionInsertCategory(data)
+        if (dados.data.error) {
+          throw dados
+        } else {
+          this.categories.push(dados.data.data)
+          this.$bvToast.toast('Cadastro realizado.', {
+            title: 'Sucesso',
+            autoHideDelay: 5000,
+            solid: true
+          })
+        }
+      } catch (error) {
+        this.$bvToast.toast('Não foi possivel realizar cadastro.', {
+          title: 'Erro',
+          autoHideDelay: 5000,
+          solid: true
+        })
+      } finally {
+        this.resetModal()
+      }
+    },
+    async edit() {
+      try {
+        let form = {
+          id: this.category.id,
+          data: {
+            name: this.name
+          }
+        }
+        let dados = await this.ActionUpdateCategory(form)
 
+        if (dados.data.error) {
+          throw dados
+        } else {
+          this.$bvToast.toast('Cadastro atualizado.', {
+            title: 'Sucesso',
+            autoHideDelay: 5000,
+            solid: true
+          })
+        }
+      } catch (error) {
+        this.$bvToast.toast('Não foi possivel atualizar cadastro.', {
+          title: 'Erro',
+          autoHideDelay: 5000,
+          solid: true
+        })
+      } finally {
+        this.ActionOpenModalCategory()
+      }
     }
   },
   watch: {

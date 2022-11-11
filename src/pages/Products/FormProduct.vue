@@ -10,7 +10,7 @@
       <b-form-group
         label="Nome"
         label-for="name-input"
-        invalid-feedback="Name is required"
+        invalid-feedback="Campo obrigatório."
         :state="nameState"
       >
         <b-form-input
@@ -23,7 +23,7 @@
       <b-form-group
         label="Categoria"
         label-for="category-id-select"
-        invalid-feedback="Category is required"
+        invalid-feedback="Campo obrigatório."
         :state="categoryIdState"
       >
         <b-form-select
@@ -66,7 +66,7 @@ export default {
     }
   },
   computed: {
-    ...mapState('products', ['modalProduct', 'product']),
+    ...mapState('products', ['modalProduct', 'product', 'products']),
     ...mapState('categories', ['categories']),
   },
   methods:{
@@ -95,53 +95,71 @@ export default {
       this.nameState = null,
       this.categoryIdState = null
       this.ActionOpenModalProduct()
-      // this.$store.commit("categories/SET_CATEGORIES", [])
     },
     async handleSubmit() {
       if (!this.checkFormValidity()) {
         return
       } else {
         if (this.product.id) {
-          try {
-            let form = {
-              id: this.product.id,
-              data: {
-                ...this.form
-              }
-            }
-            await this.ActionUpdateProduct(form)
-            this.$bvToast.toast('Cadastro atualizado.', {
-              title: 'Sucesso',
-              autoHideDelay: 5000,
-              solid: true,
-            })
-          } catch (error) {
-            this.$bvToast.toast('Não foi possivel atualizar cadastro.', {
-              title: 'Erro',
-              autoHideDelay: 5000,
-              solid: true,
-            })
-          } finally {
-           this.ActionOpenModalProduct() 
-          }
+          this.edit()
         } else {
-          try {
-            this.ActionInsertProduct(this.form)
-            this.$bvToast.toast('Cadastro realizado.', {
-              title: 'Sucesso',
-              autoHideDelay: 5000,
-              solid: true,
-            })
-          } catch (error) {
-            this.$bvToast.toast('Não foi possivel realizar cadastro.', {
-              title: 'Erro',
-              autoHideDelay: 5000,
-              solid: true,
-            })
-          } finally {
-            this.resetModal()
+          this.save()
+        }
+      }
+    },
+    async save() {
+      try {
+        let dados = await this.ActionInsertProduct(this.form)
+        if (dados.data.error) {
+          throw dados
+        } else {
+          let category = this.categories.find(item => item.id === this.form.category_id)
+          this.products.push({ ...dados.data.data, category })
+          this.$bvToast.toast('Cadastro realizado.', {
+            title: 'Sucesso',
+            autoHideDelay: 5000,
+            solid: true,
+          })
+        }
+      } catch (error) {
+        this.$bvToast.toast('Não foi possivel realizar cadastro.', {
+          title: 'Erro',
+          autoHideDelay: 5000,
+          solid: true,
+        })
+      } finally {
+        this.resetModal()
+      }
+    },
+    async edit() {
+      try {
+        let form = {
+          id: this.product.id,
+          data: {
+            ...this.form
           }
         }
+        let dados = await this.ActionUpdateProduct(form)
+        if (dados.data.error) {
+          throw dados
+        } else {
+          let index = this.products.indexOf(form.id)
+          let category = this.categories.find(item => item.id === form.data.category_id)
+          this.products.splice(index, 1, { ...dados.data.data, category })
+          this.$bvToast.toast('Cadastro atualizado.', {
+            title: 'Sucesso',
+            autoHideDelay: 5000,
+            solid: true,
+          })
+        }
+      } catch (error) {
+        this.$bvToast.toast('Não foi possivel atualizar cadastro.', {
+          title: 'Erro',
+          autoHideDelay: 5000,
+          solid: true,
+        })
+      } finally {
+        this.ActionOpenModalProduct() 
       }
     }
   },
